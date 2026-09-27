@@ -3,25 +3,26 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router"
-import { lazy } from "react"
 
 import { AppShell } from "@/components/layout/AppShell"
 import type { LineStatus } from "@/lib/api/types"
+import { lazyWithReload } from "@/lib/chunk-reload"
 import type { StatusFilter } from "@/pages/ComparisonPage"
+import { ErrorPage } from "@/pages/ErrorPage"
 import { HomePage } from "@/pages/HomePage"
 import { NotFoundPage } from "@/pages/NotFoundPage"
 
 // Carga diferida: el lector de códigos (WASM) solo se descarga al entrar a contar.
-const CountPage = lazy(() =>
+const CountPage = lazyWithReload(() =>
   import("@/pages/CountPage").then((m) => ({ default: m.CountPage }))
 )
-const ComparisonPage = lazy(() =>
+const ComparisonPage = lazyWithReload(() =>
   import("@/pages/ComparisonPage").then((m) => ({ default: m.ComparisonPage }))
 )
-const UsersPage = lazy(() =>
+const UsersPage = lazyWithReload(() =>
   import("@/pages/UsersPage").then((m) => ({ default: m.UsersPage }))
 )
-const DataPage = lazy(() =>
+const DataPage = lazyWithReload(() =>
   import("@/pages/DataPage").then((m) => ({ default: m.DataPage }))
 )
 
@@ -36,6 +37,7 @@ const STATUS_FILTERS: StatusFilter[] = [
 const rootRoute = createRootRoute({
   component: AppShell,
   notFoundComponent: NotFoundPage,
+  errorComponent: ErrorPage,
 })
 
 const homeRoute = createRoute({
