@@ -45,3 +45,26 @@ Rutas: `/usuarios` (admin) · `/` inicio · `/conteos/:id` contar · `/conteos/:
 
 Todos los datos de inventario viven en el backend. En el dispositivo solo se guardan
 preferencias: tema y tienda elegida. Quién cuenta sale del usuario con sesión iniciada.
+
+## Despliegue (Netlify + API en Render)
+
+`netlify.toml` define el build (`pnpm build && node scripts/netlify-redirects.mjs`), que
+genera `dist/_redirects` con dos reglas:
+
+```
+/api/*  https://<api>.onrender.com/api/:splat  200   # proxy al API
+/*      /index.html                            200   # rutas de la SPA (/conteos/3, …)
+```
+
+El proxy hace que el navegador vea el API en el mismo dominio de la app: la cookie de
+sesión (httpOnly, `SameSite=Lax`) funciona en todos los navegadores, incluido Safari/iOS,
+que bloquea cookies entre `netlify.app` y `onrender.com`.
+
+Variables en Netlify (Site configuration → Environment variables):
+
+| Variable | Valor |
+|---|---|
+| `API_ORIGIN` | `https://inventory-totto-api.onrender.com` (obligatoria; el build falla sin ella) |
+
+No definas `VITE_API_URL`: la app usa `/api/v1` en su propio dominio. En el API, pon
+`CORS_ORIGINS=["https://inventory-totto-ui.netlify.app"]` y `COOKIE_SECURE=true`.

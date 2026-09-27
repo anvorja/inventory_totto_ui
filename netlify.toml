@@ -1,0 +1,22 @@
+# Netlify build. Variables (Site configuration → Environment variables):
+#   API_ORIGIN=https://…   origen del API en Render; el proxy envía /api/* allí.
+# No se define VITE_API_URL: la app usa "/api/v1" en su propio dominio (ver src/lib/api/client.ts).
+[build]
+  command = "pnpm build && node scripts/netlify-redirects.mjs"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+  PNPM_VERSION = "12.3.4"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
