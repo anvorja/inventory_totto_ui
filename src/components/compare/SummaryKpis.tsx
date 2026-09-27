@@ -1,7 +1,9 @@
+import { ShoppingBagIcon } from "lucide-react"
+
 import { KpiTile } from "@/components/common/KpiTile"
 import { Progress } from "@/components/ui/progress"
 import type { ComparisonSummary } from "@/lib/api/types"
-import { formatNumber, formatPercent } from "@/lib/format"
+import { formatNumber, formatPercent, plural } from "@/lib/format"
 import { STATUS_META } from "@/lib/status"
 
 export function SummaryKpis({ summary }: { summary: ComparisonSummary }) {
@@ -39,6 +41,17 @@ export function SummaryKpis({ summary }: { summary: ComparisonSummary }) {
           {formatPercent(summary.progress)} de las referencias esperadas ya
           tiene al menos una unidad contada
         </div>
+        {summary.soldUnits > 0 && (
+          <div className="mt-2 flex items-center gap-1.5 rounded-xl bg-info/10 px-3 py-2 text-xs text-info">
+            <ShoppingBagIcon className="size-3.5 shrink-0" />
+            {plural(
+              summary.soldUnits,
+              "unidad vendida",
+              "unidades vendidas"
+            )}{" "}
+            durante el conteo, ya descontadas de lo esperado.
+          </div>
+        )}
       </div>
       <KpiTile
         label={STATUS_META.missing.plural}
