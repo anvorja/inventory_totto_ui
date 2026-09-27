@@ -8,10 +8,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useStore } from "@/hooks/useStore"
 
 export function StoreSwitcher() {
-  const { stores, store, selectStore } = useStore()
+  const { stores, store, selectStore, isLoading } = useStore()
+
+  // Evita mostrar "Sin tienda" por un instante mientras se consulta.
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-1.5" aria-label="Cargando tienda">
+        <Skeleton className="h-3 w-10" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+    )
+  }
 
   const label = (
     <span className="flex min-w-0 flex-col items-start leading-tight">
