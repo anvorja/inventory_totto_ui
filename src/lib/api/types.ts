@@ -3,6 +3,8 @@ export type SessionStatus = "open" | "closed"
 export type LineStatus = "ok" | "missing" | "surplus" | "unexpected"
 export type ImportKind = "stock" | "catalog"
 export type UserRole = "asesor" | "administrador"
+/** count: unidades encontradas al contar · sale: unidades vendidas durante el conteo */
+export type EntryKind = "count" | "sale"
 
 export interface Store {
   id: number
@@ -48,6 +50,7 @@ export interface CountSession {
   baseline: Snapshot | null
   countedUnits: number
   countedProducts: number
+  soldUnits: number
   entries: number
   counters: string[]
   lastActivityAt: string | null
@@ -55,6 +58,7 @@ export interface CountSession {
 
 export interface CountEntry {
   id: number
+  kind: EntryKind
   product: Product
   quantity: number
   scannedCode: string | null
@@ -70,11 +74,26 @@ export interface ScanResult {
   counted: number
   expected: number
   inBaseline: boolean
+  /** Ventas registradas después de la hora del reporte (ya descontadas de `expected`). */
+  sold: number
   status: LineStatus
 }
 
 export interface UndoResult {
   product: Product
+  kind: EntryKind
+  counted: number
+  expected: number
+  sold: number
+}
+
+/** Producto con su situación en el conteo (para registrar ventas). */
+export interface ProductStock {
+  product: Product
+  inReport: boolean
+  reported: number
+  sold: number
+  expected: number
   counted: number
 }
 
@@ -86,6 +105,11 @@ export interface ComparisonLine {
   businessUnit: string | null
   size: string | null
   colorName: string | null
+  /** Lo que dice el reporte de existencias. */
+  reported: number
+  /** Vendido durante el conteo después de la hora del reporte. */
+  sold: number
+  /** Esperado ahora = reporte − vendido. */
   expected: number
   counted: number
   difference: number
@@ -105,6 +129,7 @@ export interface ComparisonSummary {
   progress: number
   expectedLines: number
   linesWithoutEan: number
+  soldUnits: number
   buckets: Record<LineStatus, Bucket>
 }
 

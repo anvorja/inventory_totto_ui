@@ -13,6 +13,7 @@ import { api } from "@/lib/api/endpoints"
 import { queryKeys } from "@/lib/api/query-keys"
 import type {
   CountEntry,
+  EntryKind,
   CountSession,
   Product,
   ProductInput,
@@ -61,7 +62,12 @@ export function CountSessionProvider({
 
   /** Aplica un cambio local inmediato al historial y al total del conteo. */
   const applyLocally = useCallback(
-    async (update: { add?: CountEntry; removeId?: number; delta: number }) => {
+    async (update: {
+      add?: CountEntry
+      removeId?: number
+      delta: number
+      kind: EntryKind
+    }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.recent(sessionId) })
       queryClient.setQueryData<CountEntry[]>(
         queryKeys.recent(sessionId),
@@ -74,8 +80,11 @@ export function CountSessionProvider({
       )
       queryClient.setQueryData<CountSession>(
         queryKeys.session(sessionId),
-        (old) =>
-          old ? { ...old, countedUnits: old.countedUnits + update.delta } : old
+        (old) => {
+          if (!old) return old
+          const field = update.kind === "sale" ? "soldUnits" : "countedUnits"
+          return { ...old, [field]: old[field] + update.delta }
+        }
       )
     },
     [queryClient, sessionId]
@@ -87,7 +96,11 @@ export function CountSessionProvider({
     scope: { id: `scan-${sessionId}` },
     mutationFn: (input: ScanInput) => api.sessions.scan(sessionId, input),
     onSuccess: async (result, input) => {
-      await applyLocally({ add: result.entry, delta: result.entry.quantity })
+      await applyLocally({
+        add: result.entry,
+        delta: result.entry.quantity,
+        kind: "count",
+      })
       setFeedback({ kind: "scan", result, quantity: input.quantity ?? 1 })
       if (result.status === "surplus" || result.status === "unexpected")
         sense.warning()
@@ -109,11 +122,36 @@ export function CountSessionProvider({
     mutationKey: scanKey,
     scope: { id: `scan-${sessionId}` },
     mutationFn: (entry: CountEntry) => api.sessions.undo(sessionId, entry.id),
-    onSuccess: async ({ product, counted }, entry) => {
-      await applyLocally({ removeId: entry.id, delta: -entry.quantity })
-      setFeedback({ kind: "undo", product, counted })
+    onSuccess: async (result, entry) => {
+      await applyLocally({
+        removeId: entry.id,
+        delta: -entry.quantity,
+        kind: entry.kind,
+      })
+      setFeedback({ kind: "undo", result })
     },
     onError: (error) => toast.error(error.message),
+    onSettled: refreshAfterChange,
+  })
+
+  // Las ventas comparten la fila con las lecturas: el orden en el tiempo define el cálculo.
+  const saleMutation = useMutation({
+    mutationKey: scanKey,
+    scope: { id: `scan-${sessionId}` },
+    mutationFn: (input: { productId: number; quantity: number }) =>
+      api.sessions.sale(sessionId, input),
+    onSuccess: async (result) => {
+      await applyLocally({
+        add: result.entry,
+        delta: result.entry.quantity,
+        kind: "sale",
+      })
+      setFeedback({ kind: "sale", result })
+      sense.success()
+      queryClient.invalidateQueries({
+        queryKey: ["sessions", sessionId, "products"],
+      })
+    },
     onSettled: refreshAfterChange,
   })
 
@@ -163,6 +201,14 @@ export function CountSessionProvider({
     [base, multiplier, registerMutation, scanMutation]
   )
 
+  const registerSale = useCallback(
+    (product: Product, quantity: number) =>
+      saleMutation
+        .mutateAsync({ productId: product.id, quantity })
+        .then(() => undefined),
+    [saleMutation]
+  )
+
   const value = useMemo<CountSessionContextValue>(
     () => ({
       sessionId,
@@ -182,6 +228,8 @@ export function CountSessionProvider({
       registerUnknown,
       dismissUnknown: () => setUnknownCode(null),
       isRegistering: registerMutation.isPending,
+      registerSale,
+      isSelling: saleMutation.isPending,
     }),
     [
       sessionId,
@@ -197,6 +245,8 @@ export function CountSessionProvider({
       undoMutation,
       registerUnknown,
       registerMutation.isPending,
+      registerSale,
+      saleMutation.isPending,
     ]
   )
 

@@ -7,6 +7,7 @@ import type {
   ImportResult,
   Product,
   ProductInput,
+  ProductStock,
   ScanInput,
   ScanResult,
   Snapshot,
@@ -108,6 +109,15 @@ export const api = {
         method: "POST",
         body: input,
       }),
+    sale: (id: number, input: { productId: number; quantity: number }) =>
+      apiJson<ScanResult>(`/sessions/${id}/sales`, {
+        method: "POST",
+        body: input,
+      }),
+    products: (id: number, q: string) =>
+      apiJson<ProductStock[]>(
+        `/sessions/${id}/products${qs({ q, limit: 25 })}`
+      ),
     recent: (id: number, limit = 30) =>
       apiJson<CountEntry[]>(`/sessions/${id}/scans${qs({ limit })}`),
     undo: (id: number, entryId: number) =>
