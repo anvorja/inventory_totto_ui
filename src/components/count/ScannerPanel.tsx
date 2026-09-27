@@ -4,7 +4,9 @@ import {
   FlashlightIcon,
   FlashlightOffIcon,
   ImageIcon,
+  RotateCwIcon,
   ShieldAlertIcon,
+  VideoOffIcon,
 } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
@@ -21,19 +23,44 @@ import { feedback } from "@/lib/feedback"
 import { cn } from "@/lib/utils"
 
 const STATUS_COPY: Partial<
-  Record<ScannerStatus, { title: string; body: string }>
+  Record<
+    ScannerStatus,
+    {
+      title: string
+      body: string
+      icon: typeof ShieldAlertIcon
+      retry?: boolean
+    }
+  >
 > = {
   denied: {
     title: "Sin permiso de cámara",
-    body: "Actívalo en los ajustes del navegador para este sitio, o usa la foto o el teclado.",
+    body: "Permite la cámara para este sitio en los ajustes del navegador (ícono junto a la dirección) y toca Reintentar.",
+    icon: ShieldAlertIcon,
+    retry: true,
   },
-  unavailable: {
-    title: "Cámara no disponible",
-    body: "La cámara en vivo necesita HTTPS. Puedes tomar una foto de la etiqueta o escribir el código.",
+  "no-camera": {
+    title: "Este equipo no tiene cámara",
+    body: "Conecta una cámara y toca Reintentar, o usa un lector de códigos USB o el teclado. Los asesores pueden contar desde su celular.",
+    icon: VideoOffIcon,
+    retry: true,
+  },
+  "in-use": {
+    title: "La cámara está ocupada",
+    body: "Otra aplicación la está usando (videollamada, otra pestaña). Ciérrala y toca Reintentar.",
+    icon: VideoOffIcon,
+    retry: true,
+  },
+  insecure: {
+    title: "El navegador no permite la cámara",
+    body: "Abre la app desde su dirección https:// o usa la foto o el teclado.",
+    icon: ShieldAlertIcon,
   },
   error: {
     title: "No pudimos iniciar la cámara",
-    body: "Cierra otras apps que la estén usando y vuelve a intentarlo.",
+    body: "Toca Reintentar. Si sigue fallando, usa la foto o el teclado.",
+    icon: ShieldAlertIcon,
+    retry: true,
   },
 }
 
@@ -45,15 +72,16 @@ export function ScannerPanel() {
   const [decoding, setDecoding] = useState(false)
   const [flash, setFlash] = useState(0)
 
-  const { status, torchSupported, torchOn, toggleTorch } = useBarcodeScanner({
-    videoRef,
-    enabled: cameraOn && isOpen,
-    paused: !!unknownCode,
-    onDetected: (code) => {
-      setFlash((n) => n + 1)
-      scan(code)
-    },
-  })
+  const { status, torchSupported, torchOn, toggleTorch, retry } =
+    useBarcodeScanner({
+      videoRef,
+      enabled: cameraOn && isOpen,
+      paused: !!unknownCode,
+      onDetected: (code) => {
+        setFlash((n) => n + 1)
+        scan(code)
+      },
+    })
 
   const onPhoto = async (file: File | undefined) => {
     if (!file) return
@@ -110,11 +138,21 @@ export function ScannerPanel() {
               </>
             ) : problem ? (
               <>
-                <ShieldAlertIcon className="size-7 text-warning" />
+                <problem.icon className="size-7 text-warning" />
                 <span className="font-medium">{problem.title}</span>
                 <span className="max-w-xs text-sm text-white/70">
                   {problem.body}
                 </span>
+                {problem.retry && (
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="mt-1 bg-white/15 text-white hover:bg-white/25"
+                    onClick={retry}
+                  >
+                    <RotateCwIcon /> Reintentar
+                  </Button>
+                )}
               </>
             ) : !isOpen ? (
               <span className="text-sm text-white/80">
