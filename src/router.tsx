@@ -2,15 +2,14 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  Link,
 } from "@tanstack/react-router"
 import { lazy } from "react"
 
 import { AppShell } from "@/components/layout/AppShell"
-import { Button } from "@/components/ui/button"
 import type { LineStatus } from "@/lib/api/types"
 import type { StatusFilter } from "@/pages/ComparisonPage"
 import { HomePage } from "@/pages/HomePage"
+import { NotFoundPage } from "@/pages/NotFoundPage"
 
 // Carga diferida: el lector de códigos (WASM) solo se descarga al entrar a contar.
 const CountPage = lazy(() =>
@@ -36,14 +35,7 @@ const STATUS_FILTERS: StatusFilter[] = [
 
 const rootRoute = createRootRoute({
   component: AppShell,
-  notFoundComponent: () => (
-    <div className="flex flex-col items-center gap-4 py-16 text-center">
-      <h1 className="text-2xl font-bold">Página no encontrada</h1>
-      <Button asChild size="xl">
-        <Link to="/">Ir al inicio</Link>
-      </Button>
-    </div>
-  ),
+  notFoundComponent: NotFoundPage,
 })
 
 const homeRoute = createRoute({
