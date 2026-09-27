@@ -7,8 +7,55 @@ export type ScannerStatus =
   | "starting"
   | "scanning"
   | "denied" // el usuario negó el permiso de cámara
-  | "unavailable" // sin cámara o sin HTTPS
+  | "insecure" // el navegador no permite cámara (sin HTTPS o sin soporte)
+  | "no-camera" // el equipo no tiene cámara conectada (típico en un PC)
+  | "in-use" // otra aplicación está usando la cámara
   | "error"
+
+/** Traduce el error de getUserMedia a un estado que la interfaz sabe explicar. */
+function statusFromError(error: unknown): ScannerStatus {
+  switch ((error as DOMException)?.name) {
+    case "NotAllowedError":
+    case "SecurityError":
+      return "denied"
+    case "NotFoundError":
+    case "DevicesNotFoundError":
+      return "no-camera"
+    case "NotReadableError":
+    case "TrackStartError":
+    case "AbortError":
+      return "in-use"
+    default:
+      return "error"
+  }
+}
+
+/** ¿Hay alguna cámara conectada? No requiere permiso (solo cuenta dispositivos). */
+async function hasCamera(): Promise<boolean> {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    return devices.some((d) => d.kind === "videoinput")
+  } catch {
+    return true // si no se puede saber, se intenta abrirla igual
+  }
+}
+
+async function openCamera(): Promise<MediaStream> {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    })
+  } catch (error) {
+    // Algunas cámaras (webcams de PC) rechazan las preferencias: se reintenta sin ellas.
+    if ((error as DOMException)?.name !== "OverconstrainedError") throw error
+    return navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+  }
+}
 
 interface Options {
   videoRef: RefObject<HTMLVideoElement | null>
@@ -34,6 +81,7 @@ export function useBarcodeScanner({
   const [status, setStatus] = useState<ScannerStatus>("idle")
   const [torchSupported, setTorchSupported] = useState(false)
   const [torchOn, setTorchOn] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const streamRef = useRef<MediaStream | null>(null)
   const onDetectedRef = useRef(onDetected)
   const pausedRef = useRef(paused)
@@ -50,20 +98,17 @@ export function useBarcodeScanner({
     let timer: ReturnType<typeof setTimeout> | undefined
 
     async function start() {
-      if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
-        setStatus("unavailable")
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        setStatus("insecure")
         return
       }
       setStatus("starting")
+      if (!(await hasCamera())) {
+        if (!cancelled) setStatus("no-camera")
+        return
+      }
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-        })
+        const stream = await openCamera()
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop())
           return
@@ -105,13 +150,10 @@ export function useBarcodeScanner({
         tick()
       } catch (error) {
         if (cancelled) return
-        const name = (error as DOMException)?.name
+        // Cada navegador nombra distinto el error de "no hay cámara": se confirma contando.
+        const next = statusFromError(error)
         setStatus(
-          name === "NotAllowedError" || name === "SecurityError"
-            ? "denied"
-            : name === "NotFoundError" || name === "OverconstrainedError"
-              ? "unavailable"
-              : "error"
+          next !== "denied" && !(await hasCamera()) ? "no-camera" : next
         )
       }
     }
@@ -125,7 +167,10 @@ export function useBarcodeScanner({
       setTorchOn(false)
       setStatus("idle")
     }
-  }, [enabled, videoRef])
+  }, [enabled, videoRef, attempt])
+
+  /** Vuelve a intentar abrir la cámara (p. ej. tras conectarla o cerrar otra app). */
+  const retry = useCallback(() => setAttempt((n) => n + 1), [])
 
   const toggleTorch = useCallback(async () => {
     const track = streamRef.current?.getVideoTracks()[0]
@@ -146,5 +191,5 @@ export function useBarcodeScanner({
     lastRef.current = { code: "", at: 0 }
   }, [])
 
-  return { status, torchSupported, torchOn, toggleTorch, resetCooldown }
+  return { status, torchSupported, torchOn, toggleTorch, resetCooldown, retry }
 }
