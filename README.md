@@ -10,7 +10,12 @@ pnpm install
 pnpm dev          # http://localhost:5173 (y en la red local, para probar en el celular)
 pnpm build        # typecheck + build
 pnpm lint && pnpm format
+pnpm typecheck    # solo tipos
 ```
+
+**Integración continua** (`.github/workflows/ci.yml`): en cada PR a `develop`/`main` y en cada
+push a esas ramas corre ESLint, Prettier (`format:check`), el build con verificación de tipos
+y el script de reglas de Netlify.
 
 El API debe estar corriendo en `http://localhost:8000` (ver `../contador-inventario-totto-api`);
 Vite hace proxy de `/api`. En producción define `VITE_API_URL` (ver `.env.example`).

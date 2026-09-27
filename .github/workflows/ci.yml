@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui:
+    name: Lint, formato, tipos y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.3.4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint
+        run: pnpm lint
+
+      - name: Prettier
+        run: pnpm format:check
+
+      - name: Build (incluye verificación de tipos)
+        run: pnpm build
+
+      # Mismo paso que corre Netlify: falla si el script del proxy deja de funcionar.
+      - name: Reglas de Netlify (_redirects)
+        run: node scripts/netlify-redirects.mjs && cat dist/_redirects
+        env:
+          API_ORIGIN: https://inventory-totto-api.onrender.com
