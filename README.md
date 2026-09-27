@@ -18,6 +18,22 @@ Vite hace proxy de `/api`. En producción define `VITE_API_URL` (ver `.env.examp
 > La cámara en vivo requiere **HTTPS** (o `localhost`). Probando desde el celular por IP de la
 > red local (http) la app cae automáticamente a "Foto" y al teclado.
 
+## Cuentas de desarrollo
+
+> ⚠ Solo durante el desarrollo: el repositorio es público y estas cuentas acceden a la app
+> desplegada con datos reales. Desactívalas antes de la operación real.
+
+App: https://inventory-totto-ui.netlify.app
+
+| Usuario | Contraseña | Rol | Notas |
+|---|---|---|---|
+| `admin` | `xnfg-e3gz-m5j` | Administrador | Temporal: pide cambiarla en el primer ingreso |
+| `pruebas.admin` | `Totto-brbn-6c5e` | Administrador | Fija, para pruebas |
+| `pruebas.asesor` | `Totto-tk5f-pxgz` | Asesor (FQ95) | Fija, para pruebas |
+
+Cuándo se pide cambiar la contraseña y cómo se gestionan las cuentas: ver
+[README del API](https://github.com/anvorja/inventory_totto_api#cuentas-de-desarrollo).
+
 ## Arquitectura (Context + Custom Hooks)
 
 ```
