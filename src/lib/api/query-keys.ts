@@ -9,4 +9,6 @@ export const queryKeys = {
   comparison: (id: number, snapshotId?: number | null) =>
     ["sessions", id, "comparison", snapshotId ?? "baseline"] as const,
   productSearch: (q: string) => ["products", "search", q] as const,
+  sessionProducts: (id: number, q: string) =>
+    ["sessions", id, "products", q] as const,
 }

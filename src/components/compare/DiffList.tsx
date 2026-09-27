@@ -35,7 +35,7 @@ export function DiffList({ lines }: { lines: ComparisonLine[] }) {
     >
       <div className="hidden grid-cols-[minmax(0,1fr)_5rem_5rem_5.5rem_7rem] gap-3 border-b px-5 py-2.5 text-xs font-medium text-muted-foreground lg:grid">
         <span>Producto</span>
-        <span className="text-right">Sistema</span>
+        <span className="text-right">Esperado</span>
         <span className="text-right">Contado</span>
         <span className="text-right">Diferencia</span>
         <span className="text-right">Estado</span>
@@ -96,11 +96,13 @@ function DiffRow({ line }: { line: ComparisonLine }) {
         <span className="tabular text-xs text-muted-foreground">
           {formatNumber(line.counted)} / {formatNumber(line.expected)}
         </span>
+        {line.sold > 0 && <SoldNote line={line} />}
       </div>
 
       {/* Tablet horizontal / escritorio: columnas */}
       <span className="tabular hidden text-right lg:block">
         {formatNumber(line.expected)}
+        {line.sold > 0 && <SoldNote line={line} />}
       </span>
       <span className="tabular hidden text-right font-medium lg:block">
         {formatNumber(line.counted)}
@@ -117,5 +119,17 @@ function DiffRow({ line }: { line: ComparisonLine }) {
         <StatusBadge status={line.status} />
       </span>
     </div>
+  )
+}
+
+/** "reporte 3 − 1 vendida": explica por qué lo esperado es menor que el reporte. */
+function SoldNote({ line }: { line: ComparisonLine }) {
+  return (
+    <span
+      className="tabular block text-[11px] leading-tight text-info"
+      title="Vendidas durante el conteo, ya descontadas de lo esperado"
+    >
+      rep. {formatNumber(line.reported)} − {formatNumber(line.sold)} vend.
+    </span>
   )
 }

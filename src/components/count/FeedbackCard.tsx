@@ -4,6 +4,7 @@ import {
   MinusIcon,
   PlusIcon,
   ScanLineIcon,
+  ShoppingBagIcon,
   Undo2Icon,
 } from "lucide-react"
 
@@ -103,23 +104,71 @@ export function FeedbackCard() {
   }
 
   if (feedback.kind === "undo") {
+    const { result } = feedback
+    const isSale = result.kind === "sale"
     return (
       <div
         aria-live="polite"
         className={cn(shell, "gap-1 before:bg-muted-foreground")}
       >
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Undo2Icon className="size-4" /> Lectura deshecha
+          <Undo2Icon className="size-4" />{" "}
+          {isSale ? "Venta deshecha" : "Lectura deshecha"}
         </div>
         <p className="font-heading text-lg font-semibold">
-          {feedback.product.name}
+          {result.product.name}
         </p>
-        <p className="text-sm text-muted-foreground">
-          Quedan{" "}
-          <span className="tabular font-semibold text-foreground">
-            {formatNumber(feedback.counted)}
+        <p className="tabular text-sm text-muted-foreground">
+          Contadas{" "}
+          <span className="font-semibold text-foreground">
+            {formatNumber(result.counted)}
           </span>{" "}
-          contadas
+          · esperadas{" "}
+          <span className="font-semibold text-foreground">
+            {formatNumber(result.expected)}
+          </span>
+        </p>
+      </div>
+    )
+  }
+
+  if (feedback.kind === "sale") {
+    const { result } = feedback
+    return (
+      <div
+        key={result.entry.id}
+        aria-live="polite"
+        className={cn(
+          shell,
+          "[animation:pop_280ms_ease-out] gap-3 before:bg-info"
+        )}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-info">
+              <ShoppingBagIcon className="size-4" /> Venta registrada
+            </div>
+            <p className="mt-1 font-heading text-lg leading-snug font-semibold text-balance">
+              {result.product.name}
+            </p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {productDetail(result.product)}
+            </p>
+          </div>
+          <span className="tabular shrink-0 rounded-full bg-info/15 px-2.5 py-1 font-heading text-lg font-bold text-info">
+            −{formatNumber(result.entry.quantity)}
+          </span>
+        </div>
+        <p className="tabular text-sm text-muted-foreground">
+          Ahora se esperan{" "}
+          <span className="font-semibold text-foreground">
+            {formatNumber(result.expected)}
+          </span>{" "}
+          y hay{" "}
+          <span className="font-semibold text-foreground">
+            {formatNumber(result.counted)}
+          </span>{" "}
+          contadas en tienda. Puedes deshacerla en «Últimas lecturas y ventas».
         </p>
       </div>
     )
@@ -168,6 +217,8 @@ export function FeedbackCard() {
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             {statusMessage(result)}
+            {result.sold > 0 &&
+              ` Descontadas ${formatNumber(result.sold)} vendidas durante el conteo.`}
           </p>
         </div>
         <div className="flex shrink-0 gap-2">

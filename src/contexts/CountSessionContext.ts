@@ -6,13 +6,15 @@ import type {
   Product,
   ProductInput,
   ScanResult,
+  UndoResult,
 } from "@/lib/api/types"
 
 /** Lo que muestra la tarjeta de resultado tras cada acción. */
 export type CountFeedback =
   | { kind: "pending"; code: string }
   | { kind: "scan"; result: ScanResult; quantity: number }
-  | { kind: "undo"; product: Product; counted: number }
+  | { kind: "sale"; result: ScanResult }
+  | { kind: "undo"; result: UndoResult }
   | { kind: "unknown"; code: string }
   | { kind: "error"; message: string; code?: string }
 
@@ -36,6 +38,9 @@ export interface CountSessionContextValue {
   registerUnknown: (input: ProductInput) => Promise<void>
   dismissUnknown: () => void
   isRegistering: boolean
+  /** Registra unidades vendidas durante el conteo (búsqueda por nombre, sin escanear). */
+  registerSale: (product: Product, quantity: number) => Promise<void>
+  isSelling: boolean
 }
 
 export const CountSessionContext = createContext<

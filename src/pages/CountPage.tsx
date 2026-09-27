@@ -1,11 +1,18 @@
 import { Link } from "@tanstack/react-router"
-import { GitCompareArrowsIcon, LockIcon, UserRoundIcon } from "lucide-react"
+import {
+  GitCompareArrowsIcon,
+  LockIcon,
+  ShoppingBagIcon,
+  UserRoundIcon,
+} from "lucide-react"
+import { useState } from "react"
 
 import { QueryError } from "@/components/common/QueryError"
 import { FeedbackCard } from "@/components/count/FeedbackCard"
 import { ManualEntry } from "@/components/count/ManualEntry"
 import { RecentScans } from "@/components/count/RecentScans"
 import { RegisterProductSheet } from "@/components/count/RegisterProductSheet"
+import { RegisterSaleSheet } from "@/components/count/RegisterSaleSheet"
 import { ScannerPanel } from "@/components/count/ScannerPanel"
 import { SessionMenu } from "@/components/count/SessionMenu"
 import { ZonePicker } from "@/components/count/ZonePicker"
@@ -15,7 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/hooks/useAuth"
 import { useCountSession } from "@/hooks/useCountSession"
 import { useUpdateSession } from "@/hooks/useSessions"
-import { formatNumber } from "@/lib/format"
+import { formatNumber, plural } from "@/lib/format"
 import { CountSessionProvider } from "@/providers/CountSessionProvider"
 
 export function CountPage({ sessionId }: { sessionId: number }) {
@@ -30,6 +37,7 @@ function CountScreen() {
   const { session, isLoading, isOpen, sessionId } = useCountSession()
   const reopen = useUpdateSession()
   const { user, can } = useAuth()
+  const [selling, setSelling] = useState(false)
   const canManage = can("sessions.manage")
 
   if (isLoading)
@@ -56,6 +64,8 @@ function CountScreen() {
               </span>
               {expected > 0 && ` de ${formatNumber(expected)}`} unidades ·{" "}
               {formatNumber(session.countedProducts)} referencias
+              {session.soldUnits > 0 &&
+                ` · ${plural(session.soldUnits, "vendida")}`}
             </p>
           </div>
           <Button
@@ -109,8 +119,17 @@ function CountScreen() {
           <div className="order-1">
             <ScannerPanel />
           </div>
-          <div className="order-3">
+          <div className="order-3 flex flex-col gap-3">
             <ManualEntry />
+            <Button
+              variant="outline"
+              size="xl"
+              className="w-full"
+              disabled={!isOpen}
+              onClick={() => setSelling(true)}
+            >
+              <ShoppingBagIcon /> Registrar venta
+            </Button>
           </div>
           <div className="order-4 flex flex-col gap-3">
             <ZonePicker />
@@ -137,6 +156,7 @@ function CountScreen() {
       </div>
 
       <RegisterProductSheet />
+      <RegisterSaleSheet open={selling} onOpenChange={setSelling} />
     </div>
   )
 }

@@ -1,10 +1,10 @@
-import { HistoryIcon, Undo2Icon } from "lucide-react"
+import { HistoryIcon, ShoppingBagIcon, Undo2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/hooks/useAuth"
 import { useCountSession } from "@/hooks/useCountSession"
-import { formatSigned, formatTime } from "@/lib/format"
+import { formatSigned, formatWhen } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 export function RecentScans() {
@@ -19,7 +19,7 @@ export function RecentScans() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
           <HistoryIcon className="size-4 text-muted-foreground" /> Últimas
-          lecturas
+          lecturas y ventas
         </CardTitle>
       </CardHeader>
       <CardContent className="px-2">
@@ -36,20 +36,29 @@ export function RecentScans() {
               >
                 <span
                   className={cn(
-                    "tabular flex h-8 min-w-10 items-center justify-center rounded-xl px-1.5 text-sm font-bold",
-                    entry.quantity > 0
-                      ? "bg-success/15 text-success"
-                      : "bg-destructive/12 text-destructive"
+                    "tabular flex h-8 min-w-10 items-center justify-center gap-1 rounded-xl px-1.5 text-sm font-bold",
+                    entry.kind === "sale"
+                      ? "bg-info/15 text-info"
+                      : entry.quantity > 0
+                        ? "bg-success/15 text-success"
+                        : "bg-destructive/12 text-destructive"
                   )}
+                  title={entry.kind === "sale" ? "Venta" : "Lectura"}
                 >
-                  {formatSigned(entry.quantity)}
+                  {entry.kind === "sale" ? (
+                    <>
+                      <ShoppingBagIcon className="size-3.5" />−{entry.quantity}
+                    </>
+                  ) : (
+                    formatSigned(entry.quantity)
+                  )}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">
                     {entry.product.name}
                   </div>
                   <div className="truncate text-xs text-muted-foreground">
-                    {formatTime(entry.createdAt)}
+                    {formatWhen(entry.createdAt)}
                     {entry.countedBy && ` · ${entry.countedBy}`}
                     {entry.zone && ` · ${entry.zone}`}
                     {entry.product.reference && ` · ${entry.product.reference}`}
@@ -59,7 +68,7 @@ export function RecentScans() {
                   <Button
                     variant="ghost"
                     size="icon-lg"
-                    aria-label={`Deshacer lectura de ${entry.product.name}`}
+                    aria-label={`Deshacer ${entry.kind === "sale" ? "venta" : "lectura"} de ${entry.product.name}`}
                     onClick={() => undo(entry)}
                   >
                     <Undo2Icon />

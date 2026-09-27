@@ -20,6 +20,23 @@ export const formatPercent = (n: number) => percentFmt.format(n)
 export const formatDateTime = (iso: string) => dateTimeFmt.format(new Date(iso))
 export const formatTime = (iso: string) => timeFmt.format(new Date(iso))
 
+/** Solo la hora si es de hoy; con fecha si es de otro día (p. ej. conteos importados). */
+export function formatWhen(iso: string) {
+  const date = new Date(iso)
+  return date.toDateString() === new Date().toDateString()
+    ? timeFmt.format(date)
+    : dateTimeFmt.format(date)
+}
+
+/** "1 unidad", "3 unidades". */
+export function plural(
+  n: number,
+  singular: string,
+  pluralForm = `${singular}s`
+) {
+  return `${numberFmt.format(n)} ${n === 1 ? singular : pluralForm}`
+}
+
 export function formatSigned(n: number) {
   return n > 0 ? `+${numberFmt.format(n)}` : numberFmt.format(n)
 }
