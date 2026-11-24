@@ -6,7 +6,7 @@ const ZONES = ["Piso de venta", "Bodega", "Vitrina"]
 export function ZonePicker() {
   const { zone, setZone } = useCountSession()
   return (
-    <div className="flex max-w-full items-center gap-2 overflow-x-auto">
+    <div className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1.5">
       <span className="shrink-0 text-xs font-medium text-muted-foreground">
         Zona
       </span>
@@ -23,7 +23,7 @@ export function ZonePicker() {
           <ToggleGroupItem
             key={z}
             value={z}
-            className="h-9 px-3 whitespace-nowrap data-[state=on]:bg-foreground data-[state=on]:text-background"
+            className="h-9 px-2.5 whitespace-nowrap data-[state=on]:bg-foreground data-[state=on]:text-background"
           >
             {z}
           </ToggleGroupItem>

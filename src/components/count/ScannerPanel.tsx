@@ -106,7 +106,12 @@ export function ScannerPanel() {
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-neutral-950 ring-1 ring-foreground/10">
-      <div className="relative aspect-[4/3] max-h-[38svh] w-full md:max-h-none">
+      <div
+        className={cn(
+          "relative w-full",
+          live ? "aspect-[4/3] max-h-[38svh] md:max-h-none" : "md:aspect-[4/3]"
+        )}
+      >
         <video
           ref={videoRef}
           playsInline
@@ -130,7 +135,7 @@ export function ScannerPanel() {
         )}
 
         {!live && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center text-white">
+          <div className="relative flex min-h-56 flex-col items-center justify-center gap-2 px-6 pt-5 pb-20 text-center text-white md:absolute md:inset-0">
             {status === "starting" ? (
               <>
                 <Spinner className="size-6" />

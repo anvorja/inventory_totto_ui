@@ -85,7 +85,7 @@ export function HomePage() {
         description="Cuenta lo que hay en tienda y compáralo con lo que dice el sistema."
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-4">
           {sessionsLoading ? (
             <Skeleton className="h-64 rounded-3xl" />

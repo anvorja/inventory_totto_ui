@@ -55,7 +55,7 @@ function CountScreen() {
       <div className="flex flex-col gap-3">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-bold tracking-tight md:text-2xl">
+            <h1 className="text-xl leading-tight font-bold tracking-tight text-balance break-words md:text-2xl">
               {session.name}
             </h1>
             <p className="tabular text-sm text-muted-foreground">
@@ -133,11 +133,13 @@ function CountScreen() {
           </div>
           <div className="order-4 flex flex-col gap-3">
             <ZonePicker />
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <UserRoundIcon className="size-3.5" />
-              Tus lecturas quedan registradas a nombre de{" "}
-              <span className="font-medium text-foreground">
-                {user?.fullName}
+            <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+              <UserRoundIcon className="mt-px size-3.5 shrink-0" />
+              <span>
+                Tus lecturas quedan registradas a nombre de{" "}
+                <span className="font-medium text-foreground">
+                  {user?.fullName}
+                </span>
               </span>
             </p>
           </div>

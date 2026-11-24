@@ -38,7 +38,7 @@ export function SessionCard({ session }: { session: CountSession }) {
           </span>
           <span className="text-xs font-medium text-success">En curso</span>
         </div>
-        <CardTitle className="text-lg">{session.name}</CardTitle>
+        <CardTitle className="text-lg break-words">{session.name}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-end justify-between gap-2">
@@ -107,7 +107,9 @@ export function ClosedSessionRow({ session }: { session: CountSession }) {
       className="flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/40"
     >
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium">{session.name}</div>
+        <div className="leading-snug font-medium break-words">
+          {session.name}
+        </div>
         <div className="text-xs text-muted-foreground">
           {formatDateTime(session.createdAt)} ·{" "}
           {formatNumber(session.countedUnits)} und

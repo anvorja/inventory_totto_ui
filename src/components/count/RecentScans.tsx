@@ -1,5 +1,6 @@
 import { HistoryIcon, ShoppingBagIcon, Undo2Icon } from "lucide-react"
 
+import { ProductDetail } from "@/components/common/ProductDetail"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/hooks/useAuth"
@@ -29,55 +30,62 @@ export function RecentScans() {
           </p>
         ) : (
           <ul className="flex flex-col">
-            {recent.slice(0, 15).map((entry) => (
-              <li
-                key={entry.id}
-                className="flex items-center gap-3 rounded-2xl px-2 py-2"
-              >
-                <span
-                  className={cn(
-                    "tabular flex h-8 min-w-10 items-center justify-center gap-1 rounded-xl px-1.5 text-sm font-bold",
-                    entry.kind === "sale"
-                      ? "bg-info/15 text-info"
-                      : entry.quantity > 0
-                        ? "bg-success/15 text-success"
-                        : "bg-destructive/12 text-destructive"
-                  )}
-                  title={entry.kind === "sale" ? "Venta" : "Lectura"}
+            {recent.slice(0, 15).map((entry) => {
+              return (
+                <li
+                  key={entry.id}
+                  className="flex items-center gap-3 rounded-2xl px-2 py-2"
                 >
-                  {entry.kind === "sale" ? (
-                    <>
-                      <ShoppingBagIcon className="size-3.5" />−{entry.quantity}
-                    </>
-                  ) : (
-                    formatSigned(entry.quantity)
-                  )}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
-                    {entry.product.name}
-                  </div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {formatWhen(entry.createdAt)}
-                    {entry.countedBy && ` · ${entry.countedBy}`}
-                    {entry.zone && ` · ${entry.zone}`}
-                    {entry.product.reference && ` · ${entry.product.reference}`}
-                  </div>
-                </div>
-                {canUndo(entry.userId) ? (
-                  <Button
-                    variant="ghost"
-                    size="icon-lg"
-                    aria-label={`Deshacer ${entry.kind === "sale" ? "venta" : "lectura"} de ${entry.product.name}`}
-                    onClick={() => undo(entry)}
+                  <span
+                    className={cn(
+                      "tabular flex h-8 min-w-10 items-center justify-center gap-1 rounded-xl px-1.5 text-sm font-bold",
+                      entry.kind === "sale"
+                        ? "bg-info/15 text-info"
+                        : entry.quantity > 0
+                          ? "bg-success/15 text-success"
+                          : "bg-destructive/12 text-destructive"
+                    )}
+                    title={entry.kind === "sale" ? "Venta" : "Lectura"}
                   >
-                    <Undo2Icon />
-                  </Button>
-                ) : (
-                  <span className="size-9" aria-hidden />
-                )}
-              </li>
-            ))}
+                    {entry.kind === "sale" ? (
+                      <>
+                        <ShoppingBagIcon className="size-3.5" />−
+                        {entry.quantity}
+                      </>
+                    ) : (
+                      formatSigned(entry.quantity)
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    {/* Nombre completo: muchas referencias solo se distinguen al final (talla, versión). */}
+                    <div className="text-sm leading-snug font-medium break-words">
+                      {entry.product.name}
+                    </div>
+                    <ProductDetail
+                      product={entry.product}
+                      className="text-foreground/80"
+                    />
+                    <div className="text-xs break-words text-muted-foreground">
+                      {formatWhen(entry.createdAt)}
+                      {entry.countedBy && ` · ${entry.countedBy}`}
+                      {entry.zone && ` · ${entry.zone}`}
+                    </div>
+                  </div>
+                  {canUndo(entry.userId) ? (
+                    <Button
+                      variant="ghost"
+                      size="icon-lg"
+                      aria-label={`Deshacer ${entry.kind === "sale" ? "venta" : "lectura"} de ${entry.product.name}`}
+                      onClick={() => undo(entry)}
+                    >
+                      <Undo2Icon />
+                    </Button>
+                  ) : (
+                    <span className="size-9" aria-hidden />
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
       </CardContent>
