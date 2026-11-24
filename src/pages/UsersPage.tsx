@@ -1,4 +1,5 @@
 import {
+  BarcodeIcon,
   EllipsisVerticalIcon,
   KeyRoundIcon,
   PencilIcon,
@@ -146,6 +147,12 @@ export function UsersPage() {
                           {u.id === me?.id && (
                             <Badge variant="outline">Tú</Badge>
                           )}
+                          {u.role === "asesor" && u.canEditBarcodes && (
+                            <Badge variant="secondary" className="gap-1">
+                              <BarcodeIcon className="size-3" />
+                              Edita códigos
+                            </Badge>
+                          )}
                           {u.mustChangePassword && u.isActive && (
                             <Badge
                               variant="secondary"
@@ -199,6 +206,33 @@ export function UsersPage() {
                           >
                             <KeyRoundIcon /> Restablecer contraseña
                           </DropdownMenuItem>
+                          {u.role === "asesor" && (
+                            <DropdownMenuItem
+                              disabled={!u.isActive || update.isPending}
+                              onSelect={() =>
+                                update.mutate(
+                                  {
+                                    id: u.id,
+                                    canEditBarcodes: !u.canEditBarcodes,
+                                  },
+                                  {
+                                    onSuccess: (saved) =>
+                                      toast.success(
+                                        saved.canEditBarcodes
+                                          ? `${saved.fullName} ya puede editar códigos de barras`
+                                          : `${saved.fullName} ya no puede editar códigos de barras`
+                                      ),
+                                    onError: (e) => toast.error(e.message),
+                                  }
+                                )
+                              }
+                            >
+                              <BarcodeIcon />
+                              {u.canEditBarcodes
+                                ? "Quitar permiso para editar códigos"
+                                : "Permitir editar códigos de barras"}
+                            </DropdownMenuItem>
+                          )}
                           {u.id !== me?.id && (
                             <>
                               <DropdownMenuSeparator />

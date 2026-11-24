@@ -49,7 +49,10 @@ export const api = {
       apiJson<UserWithPassword>("/users", { method: "POST", body: input }),
     update: (
       id: number,
-      input: Partial<Omit<UserInput, "username">> & { isActive?: boolean }
+      input: Partial<Omit<UserInput, "username">> & {
+        isActive?: boolean
+        canEditBarcodes?: boolean
+      }
     ) => apiJson<User>(`/users/${id}`, { method: "PATCH", body: input }),
     resetPassword: (id: number) =>
       apiJson<UserWithPassword>(`/users/${id}/reset-password`, {
@@ -84,6 +87,11 @@ export const api = {
       apiJson<Product[]>(`/products${qs({ q, limit: 20 })}`),
     register: (input: ProductInput) =>
       apiJson<Product>("/products", { method: "POST", body: input }),
+    changeEan: (id: number, ean: string) =>
+      apiJson<Product>(`/products/${id}/ean`, {
+        method: "PATCH",
+        body: { ean },
+      }),
   },
   sessions: {
     get: (id: number) => apiJson<CountSession>(`/sessions/${id}`),

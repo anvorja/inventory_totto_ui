@@ -12,6 +12,7 @@ export type Permission =
   | "sessions.export"
   | "entries.undoAny" // deshacer lecturas de otras personas
   | "users.manage"
+  | "products.editBarcode" // corregir códigos de barras: admin, o asesor con permiso
 
 const ADMIN_ONLY: ReadonlySet<Permission> = new Set([
   "imports.upload",
@@ -25,7 +26,9 @@ const ADMIN_ONLY: ReadonlySet<Permission> = new Set([
 
 export function can(user: User | null, permission: Permission) {
   if (!user) return false
-  return user.role === "administrador" || !ADMIN_ONLY.has(permission)
+  if (user.role === "administrador") return true
+  if (permission === "products.editBarcode") return user.canEditBarcodes
+  return !ADMIN_ONLY.has(permission)
 }
 
 export const ROLE_LABEL: Record<User["role"], string> = {

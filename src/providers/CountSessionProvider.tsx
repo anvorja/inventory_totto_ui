@@ -156,6 +156,16 @@ export function CountSessionProvider({
   })
 
   const registerMutation = useMutation({ mutationFn: api.products.register })
+  const changeEanMutation = useMutation({
+    mutationFn: ({ productId, ean }: { productId: number; ean: string }) =>
+      api.products.changeEan(productId, ean),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({
+        queryKey: ["sessions", sessionId, "products"],
+      })
+    },
+  })
 
   const base = useCallback(
     // Quién cuenta lo determina el servidor a partir de la sesión.
@@ -201,6 +211,27 @@ export function CountSessionProvider({
     [base, multiplier, registerMutation, scanMutation]
   )
 
+  const replaceBarcodeAndCount = useCallback(
+    async (product: Product) => {
+      if (!unknownCode) return
+      const updated = await changeEanMutation.mutateAsync({
+        productId: product.id,
+        ean: unknownCode,
+      })
+      setUnknownCode(null)
+      toast.success("Código de barras reemplazado", {
+        description: `${updated.name}: ${updated.ean}`,
+      })
+      scanMutation.mutate({
+        productId: updated.id,
+        quantity: multiplier,
+        ...base(),
+      })
+      setMultiplier(1)
+    },
+    [base, changeEanMutation, multiplier, scanMutation, unknownCode]
+  )
+
   const registerSale = useCallback(
     (product: Product, quantity: number) =>
       saleMutation
@@ -226,8 +257,9 @@ export function CountSessionProvider({
       adjust,
       undo: (entry) => undoMutation.mutate(entry),
       registerUnknown,
+      replaceBarcodeAndCount,
       dismissUnknown: () => setUnknownCode(null),
-      isRegistering: registerMutation.isPending,
+      isRegistering: registerMutation.isPending || changeEanMutation.isPending,
       registerSale,
       isSelling: saleMutation.isPending,
     }),
@@ -244,7 +276,9 @@ export function CountSessionProvider({
       adjust,
       undoMutation,
       registerUnknown,
+      replaceBarcodeAndCount,
       registerMutation.isPending,
+      changeEanMutation.isPending,
       registerSale,
       saleMutation.isPending,
     ]

@@ -1,6 +1,7 @@
 import {
   BarcodeIcon,
   FileSpreadsheetIcon,
+  PencilIcon,
   SearchIcon,
   Trash2Icon,
   UploadIcon,
@@ -8,7 +9,9 @@ import {
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { EditBarcodeSheet } from "@/components/common/EditBarcodeSheet"
 import { PageHeader } from "@/components/common/PageHeader"
+import { ProductDetail } from "@/components/common/ProductDetail"
 import { ImportSheet } from "@/components/data/ImportSheet"
 import {
   AlertDialog,
@@ -40,13 +43,8 @@ import { useAuth } from "@/hooks/useAuth"
 import { useProductSearch } from "@/hooks/useProductSearch"
 import { useDeleteSnapshot, useSnapshots } from "@/hooks/useSnapshots"
 import { useStore } from "@/hooks/useStore"
-import type { Snapshot } from "@/lib/api/types"
-import {
-  formatDateTime,
-  formatNumber,
-  formatRelative,
-  productDetail,
-} from "@/lib/format"
+import type { Product, Snapshot } from "@/lib/api/types"
+import { formatDateTime, formatNumber, formatRelative } from "@/lib/format"
 
 export function DataPage() {
   const { store } = useStore()
@@ -193,6 +191,9 @@ export function DataPage() {
 function ProductLookup() {
   const [query, setQuery] = useState("")
   const { data = [], isFetching } = useProductSearch(query)
+  const { can } = useAuth()
+  const canEdit = can("products.editBarcode")
+  const [editing, setEditing] = useState<Product | null>(null)
   return (
     <Card size="sm">
       <CardHeader>
@@ -226,25 +227,39 @@ function ProductLookup() {
               className="flex items-center gap-2 rounded-xl px-1 py-2"
             >
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{p.name}</div>
-                <div className="truncate text-xs text-muted-foreground">
-                  {productDetail(p)}
+                <div className="text-sm leading-snug font-medium break-words">
+                  {p.name}
                 </div>
+                <ProductDetail product={p} />
+                {p.ean ? (
+                  <span className="tabular mt-0.5 flex items-center gap-1 font-mono text-xs text-muted-foreground">
+                    <BarcodeIcon className="size-3 shrink-0" />
+                    {p.ean}
+                  </span>
+                ) : (
+                  <Badge variant="outline" className="mt-1 text-warning">
+                    Sin código
+                  </Badge>
+                )}
               </div>
-              {p.ean ? (
-                <span className="tabular flex items-center gap-1 font-mono text-xs text-muted-foreground">
-                  <BarcodeIcon className="size-3" />
-                  {p.ean}
-                </span>
-              ) : (
-                <Badge variant="outline" className="text-warning">
-                  Sin código
-                </Badge>
+              {canEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon-lg"
+                  aria-label={`Editar código de barras de ${p.name}`}
+                  onClick={() => setEditing(p)}
+                >
+                  <PencilIcon />
+                </Button>
               )}
             </li>
           ))}
         </ul>
       </CardContent>
+      <EditBarcodeSheet
+        product={editing}
+        onOpenChange={(open) => !open && setEditing(null)}
+      />
     </Card>
   )
 }

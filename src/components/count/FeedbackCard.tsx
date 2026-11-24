@@ -1,4 +1,5 @@
 import {
+  BarcodeIcon,
   CircleAlertIcon,
   CircleHelpIcon,
   MinusIcon,
@@ -7,13 +8,16 @@ import {
   ShoppingBagIcon,
   Undo2Icon,
 } from "lucide-react"
+import { useState } from "react"
 
+import { EditBarcodeSheet } from "@/components/common/EditBarcodeSheet"
 import { ProductDetail } from "@/components/common/ProductDetail"
 import { StatusBadge } from "@/components/common/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { useAuth } from "@/hooks/useAuth"
 import { useCountSession } from "@/hooks/useCountSession"
-import type { ScanResult } from "@/lib/api/types"
+import type { Product, ScanResult } from "@/lib/api/types"
 import { formatNumber } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -42,6 +46,10 @@ const shell =
 
 export function FeedbackCard() {
   const { feedback, adjust, isOpen, unknownCode } = useCountSession()
+  const { can } = useAuth()
+  const [editing, setEditing] = useState<Product | null>(null)
+  // La tarjeta muestra el resultado de la lectura; tras corregir el código se ve el nuevo.
+  const [saved, setSaved] = useState<Product | null>(null)
 
   if (!feedback) {
     return (
@@ -176,68 +184,92 @@ export function FeedbackCard() {
   const { result, quantity } = feedback
   const { product } = result
   return (
-    <div
-      key={result.entry.id}
-      aria-live="polite"
-      className={cn(
-        shell,
-        STRIPE[result.status],
-        "[animation:pop_280ms_ease-out] gap-3"
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-heading text-lg leading-snug font-semibold text-balance">
-            {product.name}
-          </p>
-          <ProductDetail product={product} className="mt-0.5" />
-        </div>
-        <StatusBadge status={result.status} className="shrink-0" />
-      </div>
-
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <div className="flex items-baseline gap-2">
-            <span className="tabular font-heading text-5xl leading-none font-bold tracking-tight">
-              {formatNumber(result.counted)}
-            </span>
-            {result.inBaseline && (
-              <span className="tabular text-lg text-muted-foreground">
-                de {formatNumber(result.expected)}
-              </span>
-            )}
-            {quantity > 1 && (
-              <span className="tabular rounded-full bg-primary/15 px-2 py-0.5 text-sm font-semibold text-foreground">
-                +{quantity}
-              </span>
+    <>
+      <div
+        key={result.entry.id}
+        aria-live="polite"
+        className={cn(
+          shell,
+          STRIPE[result.status],
+          "[animation:pop_280ms_ease-out] gap-3"
+        )}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-heading text-lg leading-snug font-semibold text-balance">
+              {product.name}
+            </p>
+            <ProductDetail product={product} className="mt-0.5" />
+            {can("products.editBarcode") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-1 -ml-2 h-auto min-h-9 px-2 text-xs text-muted-foreground pointer-coarse:min-h-11"
+                onClick={() =>
+                  setEditing(saved?.id === product.id ? saved : product)
+                }
+              >
+                <BarcodeIcon className="size-3.5" />
+                <span className="tabular font-mono">
+                  {(saved?.id === product.id ? saved.ean : product.ean) ??
+                    "Sin código"}
+                </span>
+                · Editar código
+              </Button>
             )}
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {statusMessage(result)}
-            {result.sold > 0 &&
-              ` Descontadas ${formatNumber(result.sold)} vendidas durante el conteo.`}
-          </p>
+          <StatusBadge status={result.status} className="shrink-0" />
         </div>
-        <div className="flex shrink-0 gap-2">
-          <Button
-            variant="outline"
-            size="icon-xl"
-            aria-label="Restar una unidad"
-            disabled={!isOpen || result.counted <= 0}
-            onClick={() => adjust(product, -1)}
-          >
-            <MinusIcon />
-          </Button>
-          <Button
-            size="icon-xl"
-            aria-label="Sumar una unidad"
-            disabled={!isOpen}
-            onClick={() => adjust(product, 1)}
-          >
-            <PlusIcon />
-          </Button>
+
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="tabular font-heading text-5xl leading-none font-bold tracking-tight">
+                {formatNumber(result.counted)}
+              </span>
+              {result.inBaseline && (
+                <span className="tabular text-lg text-muted-foreground">
+                  de {formatNumber(result.expected)}
+                </span>
+              )}
+              {quantity > 1 && (
+                <span className="tabular rounded-full bg-primary/15 px-2 py-0.5 text-sm font-semibold text-foreground">
+                  +{quantity}
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {statusMessage(result)}
+              {result.sold > 0 &&
+                ` Descontadas ${formatNumber(result.sold)} vendidas durante el conteo.`}
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              variant="outline"
+              size="icon-xl"
+              aria-label="Restar una unidad"
+              disabled={!isOpen || result.counted <= 0}
+              onClick={() => adjust(product, -1)}
+            >
+              <MinusIcon />
+            </Button>
+            <Button
+              size="icon-xl"
+              aria-label="Sumar una unidad"
+              disabled={!isOpen}
+              onClick={() => adjust(product, 1)}
+            >
+              <PlusIcon />
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+      <EditBarcodeSheet
+        product={editing}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onSaved={setSaved}
+      />
+    </>
   )
 }
