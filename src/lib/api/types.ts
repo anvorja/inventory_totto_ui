@@ -22,6 +22,8 @@ export interface Product {
   reference: string | null
   ean: string | null
   name: string
+  /** Un administrador corrigió el nombre; las cargas de Excel ya no lo cambian. */
+  nameLocked: boolean
   businessUnit: string | null
   size: string | null
   colorCode: string | null

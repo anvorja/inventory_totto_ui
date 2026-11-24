@@ -13,6 +13,7 @@ export type Permission =
   | "entries.undoAny" // deshacer lecturas de otras personas
   | "users.manage"
   | "products.editBarcode" // corregir códigos de barras: admin, o asesor con permiso
+  | "products.editName" // corregir el nombre de un producto
 
 const ADMIN_ONLY: ReadonlySet<Permission> = new Set([
   "imports.upload",
@@ -22,6 +23,7 @@ const ADMIN_ONLY: ReadonlySet<Permission> = new Set([
   "sessions.export",
   "entries.undoAny",
   "users.manage",
+  "products.editName",
 ])
 
 export function can(user: User | null, permission: Permission) {
