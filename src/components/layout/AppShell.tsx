@@ -12,7 +12,7 @@ export function AppShell() {
   return (
     <div className="min-h-svh bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/85 pt-safe backdrop-blur-lg">
-        <div className="flex h-16 items-center gap-3 px-4 md:px-6">
+        <div className="flex h-16 items-center gap-2 px-4 sm:gap-3 md:px-6">
           <Link
             to="/"
             aria-label="Inicio"
