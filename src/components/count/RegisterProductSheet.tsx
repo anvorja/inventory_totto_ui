@@ -1,7 +1,13 @@
-import { CheckIcon, LinkIcon, PackagePlusIcon, SearchIcon } from "lucide-react"
-import { ProductDetail } from "@/components/common/ProductDetail"
+import {
+  CheckIcon,
+  LinkIcon,
+  PackagePlusIcon,
+  SearchIcon,
+  TriangleAlertIcon,
+} from "lucide-react"
 import { useState } from "react"
 
+import { ProductDetail } from "@/components/common/ProductDetail"
 import { ResponsiveSheet } from "@/components/common/ResponsiveSheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,6 +20,7 @@ import {
 } from "@/components/ui/input-group"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAuth } from "@/hooks/useAuth"
 import { useCountSession } from "@/hooks/useCountSession"
 import { useProductSearch } from "@/hooks/useProductSearch"
 import type { Product } from "@/lib/api/types"
@@ -48,8 +55,16 @@ export function RegisterProductSheet() {
 }
 
 function RegisterForm({ code }: { code: string }) {
-  const { registerUnknown, dismissUnknown, isRegistering } = useCountSession()
+  const {
+    registerUnknown,
+    replaceBarcodeAndCount,
+    dismissUnknown,
+    isRegistering,
+  } = useCountSession()
+  const { can } = useAuth()
   const isEan = /^\d{8,14}$/.test(code)
+  // Con permiso, un producto que ya tiene otro código se puede elegir para reemplazarlo.
+  const canReplace = isEan && can("products.editBarcode")
   const [tab, setTab] = useState<"link" | "new">("link")
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Product | null>(null)
@@ -64,6 +79,10 @@ function RegisterForm({ code }: { code: string }) {
     try {
       if (tab === "link") {
         if (!selected) return
+        if (replaces) {
+          await replaceBarcodeAndCount(selected)
+          return
+        }
         await registerUnknown({
           ean: isEan ? code : null,
           reference: selected.reference,
@@ -80,8 +99,12 @@ function RegisterForm({ code }: { code: string }) {
     }
   }
 
+  // Reemplazar = el producto ya tiene otro código, o no tiene referencia para asociarlo.
+  const replaces = !!selected && (!!selected.ean || !selected.reference)
   const canSubmit =
-    tab === "link" ? !!selected?.reference : name.trim().length > 1
+    tab === "link"
+      ? !!selected && (replaces ? canReplace : true)
+      : name.trim().length > 1
 
   return (
     <div className="flex flex-col gap-4 pb-4">
@@ -132,13 +155,14 @@ function RegisterForm({ code }: { code: string }) {
             {candidates.map((p) => {
               const active = selected?.id === p.id
               const taken = !!p.ean
+              const selectable = canReplace || (!taken && !!p.reference)
               return (
                 <li key={p.id}>
                   <button
                     type="button"
                     role="option"
                     aria-selected={active}
-                    disabled={taken || !p.reference}
+                    disabled={!selectable}
                     onClick={() => setSelected(p)}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/40 disabled:opacity-50",
@@ -153,10 +177,14 @@ function RegisterForm({ code }: { code: string }) {
                       </div>
                       <ProductDetail product={p} />
                     </div>
-                    {taken ? (
-                      <Badge variant="outline">Ya tiene código</Badge>
+                    {active ? (
+                      <CheckIcon className="size-4 shrink-0 text-primary" />
                     ) : (
-                      active && <CheckIcon className="size-4 text-primary" />
+                      taken && (
+                        <Badge variant="outline" className="shrink-0">
+                          {canReplace ? "Tiene otro código" : "Ya tiene código"}
+                        </Badge>
+                      )
                     )}
                   </button>
                 </li>
@@ -191,6 +219,26 @@ function RegisterForm({ code }: { code: string }) {
         </TabsContent>
       </Tabs>
 
+      {tab === "link" && selected && replaces && (
+        <p className="flex items-start gap-2 rounded-2xl bg-warning/15 p-3 text-sm text-warning">
+          <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
+          <span>
+            {selected.ean ? (
+              <>
+                Este producto tiene el código{" "}
+                <span className="tabular font-mono font-semibold">
+                  {selected.ean}
+                </span>
+                . Se reemplazará por{" "}
+              </>
+            ) : (
+              "Se le asignará el código "
+            )}
+            <span className="tabular font-mono font-semibold">{code}</span>.
+          </span>
+        </p>
+      )}
+
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
@@ -213,7 +261,11 @@ function RegisterForm({ code }: { code: string }) {
           onClick={submit}
         >
           {isRegistering && <Spinner />}
-          {tab === "link" ? "Asociar y contar" : "Registrar y contar"}
+          {tab === "link"
+            ? replaces
+              ? "Reemplazar y contar"
+              : "Asociar y contar"
+            : "Registrar y contar"}
         </Button>
       </div>
     </div>

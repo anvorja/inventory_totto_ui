@@ -36,6 +36,8 @@ export interface CountSessionContextValue {
   adjust: (product: Product, delta: number) => void
   undo: (entry: CountEntry) => void
   registerUnknown: (input: ProductInput) => Promise<void>
+  /** Reemplaza el código de barras de `product` por el código leído y cuenta la unidad. */
+  replaceBarcodeAndCount: (product: Product) => Promise<void>
   dismissUnknown: () => void
   isRegistering: boolean
   /** Registra unidades vendidas durante el conteo (búsqueda por nombre, sin escanear). */

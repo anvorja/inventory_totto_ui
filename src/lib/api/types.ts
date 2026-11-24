@@ -180,6 +180,8 @@ export interface User {
   role: UserRole
   store: Store | null
   isActive: boolean
+  /** Permiso que el administrador concede a un asesor para corregir códigos de barras. */
+  canEditBarcodes: boolean
   mustChangePassword: boolean
   lastLoginAt: string | null
   createdAt: string
