@@ -1,10 +1,11 @@
 import { HistoryIcon, ShoppingBagIcon, Undo2Icon } from "lucide-react"
 
+import { ProductDetail } from "@/components/common/ProductDetail"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/hooks/useAuth"
 import { useCountSession } from "@/hooks/useCountSession"
-import { formatSigned, formatWhen, productDetail } from "@/lib/format"
+import { formatSigned, formatWhen } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 export function RecentScans() {
@@ -30,7 +31,6 @@ export function RecentScans() {
         ) : (
           <ul className="flex flex-col">
             {recent.slice(0, 15).map((entry) => {
-              const detail = productDetail(entry.product)
               return (
                 <li
                   key={entry.id}
@@ -61,12 +61,11 @@ export function RecentScans() {
                     <div className="text-sm leading-snug font-medium break-words">
                       {entry.product.name}
                     </div>
-                    {detail && (
-                      <div className="tabular text-xs break-words text-foreground/80">
-                        {detail}
-                      </div>
-                    )}
-                    <div className="truncate text-xs text-muted-foreground">
+                    <ProductDetail
+                      product={entry.product}
+                      className="text-foreground/80"
+                    />
+                    <div className="text-xs break-words text-muted-foreground">
                       {formatWhen(entry.createdAt)}
                       {entry.countedBy && ` · ${entry.countedBy}`}
                       {entry.zone && ` · ${entry.zone}`}

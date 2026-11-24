@@ -5,6 +5,7 @@ import {
   SearchIcon,
   ShoppingBagIcon,
 } from "lucide-react"
+import { ProductDetail } from "@/components/common/ProductDetail"
 import { useState } from "react"
 
 import { ResponsiveSheet } from "@/components/common/ResponsiveSheet"
@@ -19,7 +20,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { useCountSession } from "@/hooks/useCountSession"
 import { useSessionProducts } from "@/hooks/useSessionProducts"
 import type { ProductStock } from "@/lib/api/types"
-import { formatNumber, productDetail } from "@/lib/format"
+import { formatNumber } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 const MAX_QUANTITY = 999
@@ -89,9 +90,7 @@ function SaleForm({ onDone }: { onDone: () => void }) {
           <p className="font-heading text-lg leading-snug font-semibold text-balance">
             {product.name}
           </p>
-          <p className="text-xs break-words text-muted-foreground">
-            {productDetail(product)}
-          </p>
+          <ProductDetail product={product} />
           <StockLine item={selected} className="mt-2" />
         </div>
 
@@ -214,9 +213,7 @@ function SaleForm({ onDone }: { onDone: () => void }) {
                   <div className="text-sm leading-snug font-medium break-words">
                     {item.product.name}
                   </div>
-                  <div className="text-xs break-words text-muted-foreground">
-                    {productDetail(item.product)}
-                  </div>
+                  <ProductDetail product={item.product} />
                   <StockLine item={item} className="mt-1" />
                 </div>
                 <PlusIcon className="size-4 shrink-0 text-muted-foreground" />

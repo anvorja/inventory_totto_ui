@@ -8,12 +8,13 @@ import {
   Undo2Icon,
 } from "lucide-react"
 
+import { ProductDetail } from "@/components/common/ProductDetail"
 import { StatusBadge } from "@/components/common/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useCountSession } from "@/hooks/useCountSession"
 import type { ScanResult } from "@/lib/api/types"
-import { formatNumber, productDetail } from "@/lib/format"
+import { formatNumber } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 const STRIPE: Record<ScanResult["status"], string> = {
@@ -151,9 +152,7 @@ export function FeedbackCard() {
             <p className="mt-1 font-heading text-lg leading-snug font-semibold text-balance">
               {result.product.name}
             </p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {productDetail(result.product)}
-            </p>
+            <ProductDetail product={result.product} className="mt-0.5" />
           </div>
           <span className="tabular shrink-0 rounded-full bg-info/15 px-2.5 py-1 font-heading text-lg font-bold text-info">
             −{formatNumber(result.entry.quantity)}
@@ -191,9 +190,7 @@ export function FeedbackCard() {
           <p className="font-heading text-lg leading-snug font-semibold text-balance">
             {product.name}
           </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {productDetail(product)}
-          </p>
+          <ProductDetail product={product} className="mt-0.5" />
         </div>
         <StatusBadge status={result.status} className="shrink-0" />
       </div>

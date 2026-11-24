@@ -1,4 +1,5 @@
 import { CheckIcon, LinkIcon, PackagePlusIcon, SearchIcon } from "lucide-react"
+import { ProductDetail } from "@/components/common/ProductDetail"
 import { useState } from "react"
 
 import { ResponsiveSheet } from "@/components/common/ResponsiveSheet"
@@ -16,7 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCountSession } from "@/hooks/useCountSession"
 import { useProductSearch } from "@/hooks/useProductSearch"
 import type { Product } from "@/lib/api/types"
-import { productDetail } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 /**
@@ -151,9 +151,7 @@ function RegisterForm({ code }: { code: string }) {
                       <div className="text-sm leading-snug font-medium break-words">
                         {p.name}
                       </div>
-                      <div className="text-xs break-words text-muted-foreground">
-                        {productDetail(p)}
-                      </div>
+                      <ProductDetail product={p} />
                     </div>
                     {taken ? (
                       <Badge variant="outline">Ya tiene código</Badge>

@@ -38,16 +38,14 @@ export function ManualEntry() {
         }}
       >
         <InputGroup className="h-12 rounded-2xl">
-          <InputGroupAddon>
+          <InputGroupAddon className="max-[359px]:hidden">
             <KeyboardIcon />
           </InputGroupAddon>
           <InputGroupInput
             ref={inputRef}
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder={
-              alpha ? "Referencia (AC53IND398…)" : "Código de barras (EAN)"
-            }
+            placeholder={alpha ? "Referencia" : "Código de barras"}
             inputMode={alpha ? "text" : "numeric"}
             enterKeyHint="go"
             autoComplete="off"
