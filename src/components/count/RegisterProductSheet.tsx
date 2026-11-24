@@ -148,10 +148,10 @@ function RegisterForm({ code }: { code: string }) {
                     )}
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium">
+                      <div className="text-sm leading-snug font-medium break-words">
                         {p.name}
                       </div>
-                      <div className="truncate text-xs text-muted-foreground">
+                      <div className="text-xs break-words text-muted-foreground">
                         {productDetail(p)}
                       </div>
                     </div>

@@ -67,7 +67,10 @@ interface Options {
 }
 
 const SCAN_INTERVAL_MS = 120
-const SAME_CODE_COOLDOWN_MS = 1800 // evita contar dos veces la misma etiqueta
+// Una etiqueta vuelve a contar solo si salió del encuadre al menos este tiempo. Antes se medía
+// desde la última vez que se *contó*, así que dejar la cámara quieta sobre una etiqueta más de
+// 1,8 s la sumaba otra vez ("a veces lee doble").
+const SAME_CODE_ABSENT_MS = 1200
 const ANY_CODE_COOLDOWN_MS = 700
 
 type TorchCapabilities = MediaTrackCapabilities & { torch?: boolean }
@@ -85,7 +88,9 @@ export function useBarcodeScanner({
   const streamRef = useRef<MediaStream | null>(null)
   const onDetectedRef = useRef(onDetected)
   const pausedRef = useRef(paused)
-  const lastRef = useRef({ code: "", at: 0 })
+  // Última vez (ms) que se vio cada código en el encuadre, y última vez que se contó alguno.
+  const seenRef = useRef(new Map<string, number>())
+  const lastCountAtRef = useRef(0)
 
   useEffect(() => {
     onDetectedRef.current = onDetected
@@ -129,16 +134,26 @@ export function useBarcodeScanner({
           if (cancelled) return
           if (!pausedRef.current && video.readyState >= 2) {
             try {
-              const [hit] = await detector.detect(video)
-              const code = hit?.rawValue?.trim()
+              const hits = await detector.detect(video)
               const now = Date.now()
-              const last = lastRef.current
-              const cooldown =
-                code === last.code
-                  ? SAME_CODE_COOLDOWN_MS
-                  : ANY_CODE_COOLDOWN_MS
-              if (code && now - last.at > cooldown) {
-                lastRef.current = { code, at: now }
+              const seen = seenRef.current
+              for (const [code, at] of seen) {
+                if (now - at > SAME_CODE_ABSENT_MS) seen.delete(code)
+              }
+              const codes = hits
+                .map((h) => h.rawValue?.trim())
+                .filter((c): c is string => !!c)
+              // Solo cuenta el primer código; si estaba en el encuadre, no vuelve a contar.
+              const [code] = codes
+              const isNew = !!code && !seen.has(code)
+              // Los que siguen a la vista renuevan su "visto por última vez".
+              for (const c of codes) if (seen.has(c)) seen.set(c, now)
+              if (
+                isNew &&
+                now - lastCountAtRef.current > ANY_CODE_COOLDOWN_MS
+              ) {
+                seen.set(code, now)
+                lastCountAtRef.current = now
                 onDetectedRef.current(code)
               }
             } catch {
@@ -188,7 +203,8 @@ export function useBarcodeScanner({
 
   /** Permite volver a leer el mismo código de inmediato (tras deshacer, por ejemplo). */
   const resetCooldown = useCallback(() => {
-    lastRef.current = { code: "", at: 0 }
+    seenRef.current.clear()
+    lastCountAtRef.current = 0
   }, [])
 
   return { status, torchSupported, torchOn, toggleTorch, resetCooldown, retry }

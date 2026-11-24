@@ -89,7 +89,7 @@ function SaleForm({ onDone }: { onDone: () => void }) {
           <p className="font-heading text-lg leading-snug font-semibold text-balance">
             {product.name}
           </p>
-          <p className="truncate text-xs text-muted-foreground">
+          <p className="text-xs break-words text-muted-foreground">
             {productDetail(product)}
           </p>
           <StockLine item={selected} className="mt-2" />
@@ -211,10 +211,10 @@ function SaleForm({ onDone }: { onDone: () => void }) {
                 className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/40"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
+                  <div className="text-sm leading-snug font-medium break-words">
                     {item.product.name}
                   </div>
-                  <div className="truncate text-xs text-muted-foreground">
+                  <div className="text-xs break-words text-muted-foreground">
                     {productDetail(item.product)}
                   </div>
                   <StockLine item={item} className="mt-1" />
