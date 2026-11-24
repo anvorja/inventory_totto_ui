@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { EditBarcodeSheet } from "@/components/common/EditBarcodeSheet"
+import { EditProductSheet } from "@/components/common/EditProductSheet"
 import { ProductDetail } from "@/components/common/ProductDetail"
 import { StatusBadge } from "@/components/common/StatusBadge"
 import { Button } from "@/components/ui/button"
@@ -48,7 +48,6 @@ export function FeedbackCard() {
   const { feedback, adjust, isOpen, unknownCode } = useCountSession()
   const { can } = useAuth()
   const [editing, setEditing] = useState<Product | null>(null)
-  // La tarjeta muestra el resultado de la lectura; tras corregir el código se ve el nuevo.
   const [saved, setSaved] = useState<Product | null>(null)
 
   if (!feedback) {
@@ -183,6 +182,9 @@ export function FeedbackCard() {
 
   const { result, quantity } = feedback
   const { product } = result
+  // La tarjeta muestra el resultado de la lectura; tras corregir el producto se ve lo nuevo.
+  const shown = saved?.id === product.id ? saved : product
+  const canEditProduct = can("products.editName") || can("products.editBarcode")
   return (
     <>
       <div
@@ -197,24 +199,22 @@ export function FeedbackCard() {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="font-heading text-lg leading-snug font-semibold text-balance">
-              {product.name}
+              {shown.name}
             </p>
-            <ProductDetail product={product} className="mt-0.5" />
-            {can("products.editBarcode") && (
+            <ProductDetail product={shown} className="mt-0.5" />
+            {canEditProduct && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="mt-1 -ml-2 h-auto min-h-9 px-2 text-xs text-muted-foreground pointer-coarse:min-h-11"
-                onClick={() =>
-                  setEditing(saved?.id === product.id ? saved : product)
-                }
+                onClick={() => setEditing(shown)}
               >
                 <BarcodeIcon className="size-3.5" />
                 <span className="tabular font-mono">
-                  {(saved?.id === product.id ? saved.ean : product.ean) ??
-                    "Sin código"}
+                  {shown.ean ?? "Sin código"}
                 </span>
-                · Editar código
+                ·{" "}
+                {can("products.editName") ? "Editar producto" : "Editar código"}
               </Button>
             )}
           </div>
@@ -265,7 +265,7 @@ export function FeedbackCard() {
           </div>
         </div>
       </div>
-      <EditBarcodeSheet
+      <EditProductSheet
         product={editing}
         onOpenChange={(open) => !open && setEditing(null)}
         onSaved={setSaved}

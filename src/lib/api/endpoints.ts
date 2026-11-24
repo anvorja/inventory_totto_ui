@@ -87,6 +87,12 @@ export const api = {
       apiJson<Product[]>(`/products${qs({ q, limit: 20 })}`),
     register: (input: ProductInput) =>
       apiJson<Product>("/products", { method: "POST", body: input }),
+    renamed: () => apiJson<Product[]>("/products/renamed"),
+    rename: (id: number, name: string) =>
+      apiJson<Product>(`/products/${id}/name`, {
+        method: "PATCH",
+        body: { name },
+      }),
     changeEan: (id: number, ean: string) =>
       apiJson<Product>(`/products/${id}/ean`, {
         method: "PATCH",
