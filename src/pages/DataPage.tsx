@@ -13,6 +13,7 @@ import { EditProductSheet } from "@/components/common/EditProductSheet"
 import { PageHeader } from "@/components/common/PageHeader"
 import { ProductDetail } from "@/components/common/ProductDetail"
 import { ImportSheet } from "@/components/data/ImportSheet"
+import { RenamedProducts } from "@/components/data/RenamedProducts"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -125,6 +126,7 @@ export function DataPage() {
         </Card>
 
         <div className="flex flex-col gap-4">
+          <RenamedProducts />
           <ProductLookup />
           <Card size="sm">
             <CardHeader>
@@ -231,6 +233,21 @@ function ProductLookup() {
                   {p.name}
                 </div>
                 <ProductDetail product={p} />
+                {p.nameLocked && (
+                  <div className="mt-1 flex flex-col items-start gap-0.5">
+                    <Badge
+                      variant="secondary"
+                      className="bg-warning/15 text-warning"
+                    >
+                      Nombre editado
+                    </Badge>
+                    {p.sourceName && (
+                      <span className="text-xs break-words text-muted-foreground">
+                        En el sistema: {p.sourceName}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {p.ean ? (
                   <span className="tabular mt-0.5 flex items-center gap-1 font-mono text-xs text-muted-foreground">
                     <BarcodeIcon className="size-3 shrink-0" />

@@ -1,4 +1,4 @@
-import { BarcodeIcon } from "lucide-react"
+import { BarcodeIcon, TriangleAlertIcon, Undo2Icon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -158,10 +158,42 @@ function EditProductForm({
             aria-invalid={!nameValid}
             className="min-h-12 resize-none text-base"
           />
-          <FieldDescription>
-            Las próximas cargas de Excel ya no cambiarán este nombre.
-          </FieldDescription>
+          {product.sourceName && (
+            <FieldDescription className="break-words">
+              En el sistema:{" "}
+              <span className="font-medium text-foreground">
+                {product.sourceName}
+              </span>
+            </FieldDescription>
+          )}
         </Field>
+      )}
+
+      {canName && product.sourceName && newName !== product.sourceName && (
+        <div className="flex flex-col gap-2 rounded-2xl bg-warning/15 p-3 text-sm text-warning">
+          <p className="flex items-start gap-2">
+            <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
+            <span>
+              Este cambio solo aplica en esta app. El Excel del sistema seguirá
+              trayendo «{product.sourceName}»:{" "}
+              <strong>corrígelo también allá</strong> para que coincidan.
+              Mientras tanto, al subir un Excel te avisaremos y se mantendrá el
+              nombre de la app.
+            </span>
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="self-start text-warning hover:bg-warning/15 hover:text-warning pointer-coarse:min-h-11"
+            onClick={() => {
+              setName(product.sourceName ?? "")
+              edit.reset()
+            }}
+          >
+            <Undo2Icon /> Usar el nombre del sistema
+          </Button>
+        </div>
       )}
 
       {canEan && (

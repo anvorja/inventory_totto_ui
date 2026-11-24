@@ -24,6 +24,8 @@ export interface Product {
   name: string
   /** Un administrador corrigió el nombre; las cargas de Excel ya no lo cambian. */
   nameLocked: boolean
+  /** Último nombre que trajo el Excel ("en el sistema"); null si se registró a mano. */
+  sourceName: string | null
   businessUnit: string | null
   size: string | null
   colorCode: string | null
@@ -160,6 +162,10 @@ export interface ImportResult {
     /** El Excel traía BARCODE y SKU invertidos; se corrigió leyendo el contenido. */
     columnsSwapped: boolean
   } | null
+  /** Nombres corregidos en la app que el Excel trae distinto (se mantuvo el de la app). */
+  nameConflicts: { product: Product; excelName: string }[]
+  /** Nombres corregidos que el Excel ya trae igual: vuelven a seguir al Excel. */
+  namesReleased: number
 }
 
 export interface ScanInput {

@@ -9,6 +9,7 @@ import { useRef, useState, type DragEvent } from "react"
 import { toast } from "sonner"
 
 import { ResponsiveSheet } from "@/components/common/ResponsiveSheet"
+import { NameConflicts } from "@/components/data/NameConflicts"
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -16,7 +17,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { useImportXlsx } from "@/hooks/useImportXlsx"
 import { useStore } from "@/hooks/useStore"
 import type { ImportResult } from "@/lib/api/types"
-import { formatNumber } from "@/lib/format"
+import { formatNumber, plural } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 /** El export del sistema trae la hora en el nombre: "data - 2026-09-26T101702.972.xlsx". */
@@ -249,12 +250,16 @@ function ImportSummary({ result }: { result: ImportResult }) {
           )}
           {s.linesWithoutEan > 0 && (
             <li className="text-warning">
-              {formatNumber(s.linesWithoutEan)} referencias sin código de
-              barras: si las escaneas, la app te pedirá asociarlas.
+              {plural(s.linesWithoutEan, "referencia", "referencias")} sin
+              código de barras: si las escaneas, la app te pedirá asociarlas.
             </li>
           )}
         </SummaryBox>
       ))}
+      <NameConflicts
+        conflicts={result.nameConflicts ?? []}
+        released={result.namesReleased ?? 0}
+      />
     </div>
   )
 }
