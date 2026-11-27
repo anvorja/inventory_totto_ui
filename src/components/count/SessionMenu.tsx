@@ -109,7 +109,7 @@ export function SessionMenu({ session }: { session: CountSession }) {
             <AlertDialogDescription>
               {confirm === "close"
                 ? "Nadie podrá seguir sumando lecturas. Podrás revisar las diferencias, exportarlas y reabrirlo si hace falta."
-                : `Se borrarán ${formatNumber(session.entries)} lecturas (${formatNumber(session.countedUnits)} unidades). Esta acción no se puede deshacer.`}
+                : `Se eliminará «${session.name}» con sus ${formatNumber(session.entries)} lecturas (${formatNumber(session.countedUnits)} unidades). Las existencias del sistema y los demás conteos no se borran. Esta acción no se puede deshacer.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -121,7 +121,7 @@ export function SessionMenu({ session }: { session: CountSession }) {
                 else
                   remove.mutate(session.id, {
                     onSuccess: () => {
-                      toast.success("Conteo eliminado")
+                      toast.success(`Se eliminó «${session.name}»`)
                       navigate({ to: "/" })
                     },
                     onError: (e) => toast.error(e.message),

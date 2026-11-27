@@ -111,7 +111,7 @@ export function ClosedSessionRow({ session }: { session: CountSession }) {
           {session.name}
         </div>
         <div className="text-xs text-muted-foreground">
-          {formatDateTime(session.createdAt)} ·{" "}
+          Creado el {formatDateTime(session.createdAt)} ·{" "}
           {formatNumber(session.countedUnits)} und
         </div>
       </div>
