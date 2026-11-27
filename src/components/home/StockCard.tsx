@@ -88,7 +88,8 @@ export function StockCard({
                 <ClockIcon className="size-4 shrink-0" />
               )}
               <span>
-                Reporte de {formatDateTime(snapshot.effectiveAt)} (
+                Excel del sistema con corte el{" "}
+                {formatDateTime(snapshot.effectiveAt)} (
                 {formatRelative(snapshot.effectiveAt)})
                 {stale && ". Podría estar desactualizado."}
               </span>
